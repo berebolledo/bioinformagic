@@ -1,2 +1,2 @@
-# bioinformagic
- School and work projects
+### bioinformagic
+ > School and work projects

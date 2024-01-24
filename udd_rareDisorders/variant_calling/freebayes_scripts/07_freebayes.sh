@@ -1,18 +1,15 @@
 #! /bin/bash
 
-#$ -N freebayes
-#$ -M brebolledo@udd.cl
-#$ -m bes
-#$ -o /hpcudd/home/boris/storage/data/logs
-#$ -e /hpcudd/home/boris/storage/data/logs
+refdir="/home/administrador/nfs_icim/1kGP-trio-data/1kGP-trio-ref"
+reference_fasta_file=${refdir}/GRCh38_full_analysis_set_plus_decoy_hla.fa
 
-refdata="/hpcudd/ICIM/boris/data/references/Homo_sapiens/Ensembl/GRCh37"
-genome="${refdata}/Sequence/WholeGenomeFasta/genome.fa"
-targets="${refdata}/Annotation/Genes/exons_${2}.bed"
 
-bamlist=${1}
-output=${2}
 
+bam=${1}
+chrom=chr${2}
+output=${chrom}_${3}
+
+targets=targets.txt
 
 #   -m --min-mapping-quality Q
 #                   Exclude alignments from analysis if they have a mapping
@@ -44,14 +41,13 @@ output=${2}
 #                   to use the allele in analysis.  default: 1
 
 
-freebayes             \
-    -m 30             \
-    -q 30             \
-    -z 0.5            \
-    -C 3              \
-    --min-coverage 10 \
-    -N                \
-    -G 3              \
-    -L ${bamlist}     \
-    -f ${genome}      \
-    -t ${targets} |bgzip -c > ${output}.vcf.gz
+freebayes \
+	-m 30             \
+	-q 30             \
+	-z 0.5            \
+	-C 3              \
+	--min-coverage 20 \
+	-G 3              \
+	-f ${reference_fasta_file} \
+	-r ${chrom} ${bam} |bgzip -c > ${output}.vcf.gz
+tabix -p vcf ${output}.vcf.gz

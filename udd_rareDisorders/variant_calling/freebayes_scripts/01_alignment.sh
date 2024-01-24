@@ -2,7 +2,7 @@
 
 refdir="/home/administrador/nfs_icim/1kGP-trio-data/1kGP-trio-ref"
 reference_fasta_file=${refdir}/GRCh38_full_analysis_set_plus_decoy_hla.fa
-rg_string="@RG\tID:${1}\tLB:22qpairs\tSM:${1}\tPL:ILLUMINA"
+rg_string="@RG\tID:${1}\tLB:mylibrary\tSM:${1}\tPL:ILLUMINA"
 fastq1=${1}_1.fq.gz
 fastq2=${1}_2.fq.gz
 bam_file=${1}.bam

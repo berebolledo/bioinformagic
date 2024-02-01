@@ -8,14 +8,15 @@ rg_string="@RG\tID:${1}\tLB:mylibrary\tSM:${1}\tPL:ILLUMINA"
 fastq1=${1}_1.fq.gz
 fastq2=${1}_2.fq.gz
 bam_file=${1}.bam
+threads=${2}
 
 bwa mem -Y \
 	-K 100000000 \
-	-t 8 \
+	-t $threads \
 	-R $rg_string \
 	$reference_fasta_file \
 	$fastq1 \
-	$fastq2 | samtools view -Shb -o $bam_file -
+	$fastq2 | samtools view -@ $threads -Shb -o $bam_file -
 
 # 02_fixMate.sh
 
@@ -65,7 +66,7 @@ mkdir -p temp
 gatk3  \
 	-T BaseRecalibrator -Xmx8g \
 	--downsample_to_fraction 0.1 \
-	-nct 8 \
+	-nct $threads \
 	--preserve_qscores_less_than 6 \
 	-L $autosomes \
 	-R $reference_fasta_file \
@@ -81,7 +82,7 @@ recalibrated_bam=recal.dedup.sorted.fixed.${1}.bam
 
 gatk3  \
 	-T PrintReads -Xmx8g \
-	-nct 8 \
+	-nct $threads \
 	--disable_indel_quals \
 	--preserve_qscores_less_than 6 \
 	-SQQ 10 \
@@ -92,5 +93,14 @@ gatk3  \
 	-o $recalibrated_bam \
 	-I $bam_dedup_sorted \
 	-BQSR $recal_data_table
+exit=$?
 
-
+if [ $exit -eq 0 ] && [ -s $recalibrated_bam ]
+then
+    mkdir -p finalized_alignments
+    mv $recalibrated_bam finalized_alignments
+    mv recal.dedup.sorted.fixed.${1}.bai finalized_alignments
+    mv dedup.metrics.${1} finalized_alignments
+    mv ${1}.log finalized_alignments
+    rm -f *${1}*
+fi
